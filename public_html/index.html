@@ -1,0 +1,104 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ciarleglio Truck and Equipment Sales</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+    <script src="script.js" defer></script>
+</head>
+<body class="landing-page">
+    <!-- Top Gap -->
+    <div class="top-gap"></div>
+
+    <!-- White Header with Social Icons and Contact Info -->
+    <header class="top-header">
+        <div class="social-icons">
+            <a href="#" class="social-icon" aria-label="Facebook">
+                <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="#" class="social-icon" aria-label="Instagram">
+                <i class="fab fa-instagram"></i>
+            </a>
+        </div>
+        <div class="contact-info">
+            <div class="contact-line">
+                <i class="fas fa-envelope"></i>
+                <span>joey@ciarlegliotruckandequipmentsales.com</span>
+            </div>
+            <div class="contact-line">
+                <i class="fas fa-phone"></i>
+                <span>(860) 876-7740</span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Gap between headers -->
+    <div class="header-gap"></div>
+
+    <!-- Large Gray Header with Diagonal Split -->
+    <header class="main-header">
+        <div class="header-left">
+            <img src="images/company-logo.png" alt="Company Logo" class="company-logo" />
+        </div>
+        <div class="header-divider"></div>
+        <div class="header-right">
+            <button class="nav-button">Home</button>
+            <button class="nav-button">All Inventory</button>
+            <button class="nav-button">Financing</button>
+            <button class="nav-button">Contact Us</button>
+        </div>
+    </header>
+
+    <!-- Gap before search -->
+    <div class="header-gap"></div>
+
+    <!-- Search Bar -->
+    <div class="search-container">
+        <input type="search" placeholder="Search..." class="search-input" />
+    </div>
+
+    <!-- Gap before category buttons -->
+    <div class="category-gap"></div>
+
+    <!-- Category Buttons -->
+    <div class="category-buttons-container">
+        <button class="category-large-button" data-category="Trucks">
+            <img src="images/category-trucks.png" alt="Trucks" class="category-bg-image" />
+            <span class="category-text">Trucks</span>
+        </button>
+        <button class="category-large-button" data-category="Equipment">
+            <img src="images/category-equipment.png" alt="Equipment" class="category-bg-image" />
+            <span class="category-text">Equipment</span>
+        </button>
+        <button class="category-large-button" data-category="Attachments">
+            <img src="images/category-attachments.png" alt="Attachments" class="category-bg-image" />
+            <span class="category-text">Attachments</span>
+        </button>
+        <button class="category-large-button" data-category="Other">
+            <img src="images/category-other.png" alt="Other" class="category-bg-image" />
+            <span class="category-text">Other</span>
+        </button>
+    </div>
+
+    <!-- Carousel Section -->
+    <div class="carousel-section">
+        <h2 class="carousel-title">Recent Inventory</h2>
+        <div class="carousel-container">
+            <button class="carousel-arrow carousel-arrow-left" aria-label="Previous items">
+                <i class="fas fa-chevron-left"></i>
+            </button>
+            <div class="carousel-track">
+                <div class="carousel-items" id="carousel-items">
+                    <!-- Items will be populated by JavaScript -->
+                </div>
+            </div>
+            <button class="carousel-arrow carousel-arrow-right" aria-label="Next items">
+                <i class="fas fa-chevron-right"></i>
+            </button>
+        </div>
+    </div>
+</body>
+</html>
