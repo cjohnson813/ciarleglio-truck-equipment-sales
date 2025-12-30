@@ -18,9 +18,9 @@ enum Condition {
 }
 
 model InventoryItem {
-  id          String     @id @default(cuid())
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id          String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt   DateTime   @default(now()) @db.Timestamptz(6)
+  updatedAt   DateTime   @updatedAt @db.Timestamptz(6)
 
   // High-level classification
   category    String
@@ -41,20 +41,24 @@ model InventoryItem {
 
   @@index([category])
   @@index([make])
+  @@index([model])
   @@index([year])
+  @@index([condition])
+  @@map("inventory_items")
 }
 
 model Image {
-  id             String         @id @default(cuid())
-  createdAt      DateTime       @default(now())
-  updatedAt      DateTime       @updatedAt
-  item           InventoryItem  @relation(fields: [itemId], references: [id])
-  itemId         String
+  id             String         @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt      DateTime       @default(now()) @db.Timestamptz(6)
+  updatedAt      DateTime       @updatedAt @db.Timestamptz(6)
+  item           InventoryItem  @relation(fields: [itemId], references: [id], onDelete: Cascade)
+  itemId         String         @db.Uuid
   storagePath    String
   publicUrl      String
   orderIndex     Int            @default(0)
 
   @@index([itemId])
   @@index([orderIndex])
+  @@map("images")
 }
 

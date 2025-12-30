@@ -1,0 +1,48 @@
+==========================================
+QUICK SETUP COMMANDS
+==========================================
+
+1. Install dependencies:
+   cd server
+   npm install
+
+2. Create .env file (copy from README.md or use these values):
+   PORT=4000
+   DATABASE_URL="postgresql://postgres:PASSWORD@db.PROJECT_REF.supabase.co:5432/postgres?schema=public"
+   SUPABASE_URL="https://PROJECT_REF.supabase.co"
+   SUPABASE_SERVICE_ROLE_KEY="your-service-role-key"
+   SUPABASE_BUCKET="inventory-images"
+   ADMIN_TOKEN="your-strong-random-token"
+
+3. Generate Prisma client:
+   npm run prisma:generate
+
+4. Create database tables (choose one):
+
+   Option A - Prisma Migrate:
+   npm run prisma:migrate -- --name init
+
+   Option B - Manual SQL (paste into Supabase SQL Editor):
+   - Run sql/00_extensions.sql
+   - Run sql/01_schema.sql
+   - Run sql/02_indexes.sql
+   - Run sql/03_seed.sql (optional)
+
+5. Create Supabase Storage bucket:
+   - Go to Supabase Dashboard → Storage
+   - Create bucket named "inventory-images" (or match SUPABASE_BUCKET)
+   - Set bucket to PUBLIC
+
+6. Start development server:
+   npm run dev
+
+7. Test the API:
+   - Health: http://localhost:4000/health
+   - Inventory: http://localhost:4000/api/inventory
+
+8. Use admin UI:
+   - Open public_html/admin.html
+   - Click "Set Admin Token" and paste ADMIN_TOKEN from .env
+
+==========================================
+

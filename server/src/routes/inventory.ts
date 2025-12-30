@@ -67,7 +67,8 @@ router.post('/', async (req, res) => {
     res.status(201).json(created);
   } catch (err) {
     if (err instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation failed', issues: err.issues });
+      const firstIssue = err.issues[0];
+      return res.status(400).json({ error: firstIssue?.message || 'Validation failed' });
     }
     console.error(err);
     res.status(500).json({ error: 'Failed to create item' });
@@ -81,7 +82,8 @@ router.put('/:id', async (req, res) => {
     res.json(updated);
   } catch (err) {
     if (err instanceof z.ZodError) {
-      return res.status(400).json({ error: 'Validation failed', issues: err.issues });
+      const firstIssue = err.issues[0];
+      return res.status(400).json({ error: firstIssue?.message || 'Validation failed' });
     }
     if ((err as any)?.code === 'P2025') {
       return res.status(404).json({ error: 'Not found' });
@@ -123,7 +125,7 @@ router.post('/:id/images', upload.array('images'), async (req, res) => {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       const ext = (file.originalname.split('.').pop() || 'bin').toLowerCase();
-      const key = `${itemId}/${Date.now()}-${crypto.randomBytes(6).toString('hex')}.${ext}`;
+      const key = `inventory/${itemId}/${Date.now()}-${crypto.randomBytes(6).toString('hex')}.${ext}`;
 
       const { error: uploadErr } = await supabase.storage.from(INVENTORY_BUCKET).upload(key, file.buffer, {
         contentType: file.mimetype,
@@ -161,6 +163,17 @@ router.post('/:id/images/reorder', async (req, res) => {
     const itemId = req.params.id;
     const order: string[] = req.body?.order;
     if (!Array.isArray(order)) return res.status(400).json({ error: 'order must be an array of image IDs' });
+    
+    // Verify item exists
+    const item = await prisma.inventoryItem.findUnique({ where: { id: itemId } });
+    if (!item) return res.status(404).json({ error: 'Item not found' });
+    
+    // Verify all images belong to this item
+    const images = await prisma.image.findMany({ where: { itemId, id: { in: order } } });
+    if (images.length !== order.length) {
+      return res.status(400).json({ error: 'Some image IDs do not belong to this item' });
+    }
+    
     await prisma.$transaction(order.map((imageId, idx) => prisma.image.update({ where: { id: imageId }, data: { orderIndex: idx } })));
     res.json({ ok: true });
   } catch (err) {
