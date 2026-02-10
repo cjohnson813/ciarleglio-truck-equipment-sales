@@ -26,10 +26,12 @@ You have two options:
 #### Option A: Use Supabase (Recommended - Cloud Database)
 
 1. Sign up at [https://supabase.com](https://supabase.com)
-2. Create a new project
+2. Create a new project (if it was paused, click **Restore project** and wait 1–2 minutes)
 3. Get your connection string:
-   - Go to: Project Settings → Database → Connection string (URI)
-   - Copy the connection string
+   - Go to: **Project Settings → Database → Connection string (URI)**
+   - Use the **Session pooler** (port **5432**) or **Direct** connection — not the Transaction pooler (6543)
+   - Add `?sslmode=require` to the end of the URI (Supabase requires SSL)
+   - If your database password has special characters (`@`, `#`, `&`, etc.), [URL-encode](https://en.wikipedia.org/wiki/Percent-encoding) them in the URI
 4. Get your API keys:
    - Go to: Project Settings → API
    - Copy the `URL` and `service_role` key
@@ -123,7 +125,8 @@ Should return: `[]` (empty array initially)
 ## Troubleshooting
 
 - **"npm is not recognized"**: Install Node.js and restart PowerShell
-- **Database connection errors**: 
+- **"Database is not running" / connection errors with Supabase**: See **[SUPABASE_SETUP.md](SUPABASE_SETUP.md)** for connection string, SSL, password encoding, and pooler vs direct connection.
+- **Other database connection errors**: 
   - Verify `DATABASE_URL` in `server/.env` is correct
   - Make sure PostgreSQL/Supabase is running
   - Check that the database exists
