@@ -11,10 +11,17 @@
     <div class="account-wrap">
         <a href="index.html" class="account-back">&larr; Back to Home</a>
 
-        <a href="admin.html" id="account-inventory-btn" class="account-inventory-btn" style="display: none;">Inventory</a>
+        <div id="account-admin-buttons" style="display: none; gap: 12px; flex-wrap: wrap; justify-content: center;">
+            <a href="admin.html" class="account-inventory-btn">Inventory</a>
+            <a href="admin-users.html" class="account-inventory-btn">Manage Users</a>
+        </div>
 
         <div class="account-cell">
             <h2>Account information</h2>
+            <div id="account-unverified" style="display: none;">
+                <p class="account-message error">Please verify your email to access your account. Check your inbox for the verification link.</p>
+                <button type="button" id="account-resend-verify" class="auth-submit">Resend verification email</button>
+            </div>
             <div id="account-view">
                 <div class="account-field">
                     <label>Username</label>

@@ -5,6 +5,7 @@ import dotenv from 'dotenv';
 import inventoryRouter from './routes/inventory.js';
 import authRouter from './routes/auth.js';
 import { accountRouter } from './routes/account.js';
+import adminUsersRouter from './routes/adminUsers.js';
 import { requireAdmin } from './middleware/adminAuth.js';
 import { optionalSession } from './middleware/optionalSession.js';
 
@@ -30,8 +31,8 @@ app.use('/api/auth', authRouter);
 app.use('/api/account', accountRouter);
 app.use('/api/inventory', inventoryRouter);
 
-// Admin inventory: require Bearer token or session with role ADMIN
 app.use('/api/admin/inventory', optionalSession, requireAdmin, inventoryRouter);
+app.use('/api/admin/users', adminUsersRouter);
 
 export default app;
 

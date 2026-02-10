@@ -1,17 +1,57 @@
-/* Reset and base styles */
-* {
+/* ============================================
+   Reset, base, and cross-browser compatibility
+   ============================================ */
+*,
+*::before,
+*::after {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
+html {
+    font-size: 100%;
+    -webkit-text-size-adjust: 100%;
+    -ms-text-size-adjust: 100%;
+    text-size-adjust: 100%;
+    scroll-behavior: smooth;
+}
+
+html,
 body {
-    font-family: Arial, sans-serif;
+    overflow-x: hidden;
+    min-width: 0;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, 'Helvetica Neue', Arial, sans-serif;
     display: flex;
     min-height: 100vh;
+    min-height: 100dvh; /* dynamic viewport for mobile browsers */
     background-color: #2c2c2c;
     gap: 20px;
-    padding: 20px;
+    padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+}
+
+/* Touch-friendly tap targets and remove tap highlight */
+button,
+a,
+input,
+select,
+[role="button"] {
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+}
+
+/* Ensure focus is visible for keyboard users */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+select:focus-visible {
+    outline: 2px solid #2a60a7;
+    outline-offset: 2px;
 }
 
 /* Landing Page Styles */
@@ -19,6 +59,10 @@ body.landing-page {
     display: block;
     background-color: #000000;
     padding: 0;
+    padding-left: env(safe-area-inset-left);
+    padding-right: env(safe-area-inset-right);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
     gap: 0;
 }
 
@@ -35,7 +79,9 @@ body.landing-page {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: clamp(10px, 1.5vw, 15px) 40px;
+    flex-wrap: wrap;
+    gap: clamp(8px, 1vw, 12px);
+    padding: clamp(10px, 1.5vw, 15px) clamp(16px, 3vw, 40px);
     box-sizing: border-box;
 }
 
@@ -78,6 +124,13 @@ body.landing-page {
     white-space: nowrap;
 }
 
+@media (max-width: 600px) {
+    .contact-line span {
+        word-break: break-word;
+        white-space: normal;
+    }
+}
+
 .contact-line i {
     color: #2a60a7;
     font-size: clamp(13px, 1.6vw, 16px);
@@ -93,7 +146,8 @@ body.landing-page {
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 10px 18px;
+    padding: clamp(10px, 2vw, 14px) clamp(14px, 2.5vw, 18px);
+    min-height: 44px; /* touch target */
     background-color: #2a60a7;
     color: white;
     text-decoration: none;
@@ -135,9 +189,11 @@ body.landing-page {
     position: relative;
     background: #fff;
     border-radius: 10px;
-    padding: 24px 28px;
-    min-width: 320px;
-    max-width: 100%;
+    padding: clamp(16px, 4vw, 28px);
+    min-width: 280px;
+    max-width: min(100%, 420px);
+    width: 100%;
+    margin: 10px;
     box-shadow: 0 8px 32px rgba(0,0,0,0.2);
 }
 
@@ -220,21 +276,90 @@ body.landing-page {
     min-height: 1.2em;
 }
 
+.auth-form-extra {
+    margin: 8px 0 0;
+    font-size: 13px;
+}
+
+.auth-form-extra a {
+    color: #2a60a7;
+}
+
+.auth-form-extra a:hover {
+    text-decoration: underline;
+}
+
+/* Auth bar on listings / admin (top of page) */
+.auth-bar-wrap {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: clamp(8px, 2vw, 12px);
+    padding: clamp(8px, 2vw, 12px) clamp(12px, 3vw, 20px);
+    padding-left: max(clamp(12px, 3vw, 20px), env(safe-area-inset-left));
+    background: #333;
+    flex-wrap: wrap;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.auth-bar-wrap .auth-bar-home {
+    color: #69a6f5;
+    text-decoration: none;
+    font-size: 14px;
+}
+
+.auth-bar-wrap .auth-bar-home:hover {
+    text-decoration: underline;
+}
+
+.verify-email-banner {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px 10px;
+    background: #f0ad4e;
+    color: #000;
+    padding: 10px 20px;
+    text-align: center;
+    font-size: clamp(13px, 1.5vw, 14px);
+}
+
+.verify-email-banner button {
+    padding: 6px 12px;
+    min-height: 44px;
+    background: #2a60a7;
+    color: #fff;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: 13px;
+}
+
+.verify-email-banner button:hover {
+    background: #1d2e66;
+}
+
 /* Account page */
 body.account-page {
     display: block;
     background-color: #1a1a1a;
-    padding: 40px 20px;
+    padding: clamp(16px, 4vw, 40px) clamp(12px, 3vw, 20px);
+    padding-left: max(clamp(12px, 3vw, 20px), env(safe-area-inset-left));
+    padding-right: max(clamp(12px, 3vw, 20px), env(safe-area-inset-right));
     min-height: 100vh;
+    min-height: 100dvh;
 }
 
 .account-wrap {
     max-width: 480px;
+    width: 100%;
     margin: 0 auto;
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 24px;
+    gap: clamp(16px, 3vw, 24px);
 }
 
 .account-inventory-btn {
@@ -256,12 +381,22 @@ body.account-page {
     color: white;
 }
 
+.account-admin-buttons {
+    display: none;
+    gap: clamp(10px, 2vw, 12px);
+    flex-wrap: wrap;
+    justify-content: center;
+    width: 100%;
+}
+
 .account-cell {
     width: 100%;
+    max-width: 100%;
     background: #2c2c2c;
     border-radius: 12px;
-    padding: 28px 24px;
+    padding: clamp(16px, 4vw, 28px) clamp(16px, 3vw, 24px);
     box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+    box-sizing: border-box;
 }
 
 .account-cell h2 {
@@ -780,6 +915,7 @@ aside nav a:hover {
     background: transparent;
     outline: none;
     -webkit-appearance: none;
+    appearance: none;
     pointer-events: none;
 }
 
@@ -1226,4 +1362,221 @@ button select option {
         flex: 0 0 calc(50% - 10px);
         min-width: 200px;
     }
+}
+
+/* ============================================
+   Additional breakpoints for all devices
+   ============================================ */
+
+/* Extra small (phones portrait) */
+@media (max-width: 480px) {
+    body {
+        padding: max(12px, env(safe-area-inset-top)) max(12px, env(safe-area-inset-right)) max(12px, env(safe-area-inset-bottom)) max(12px, env(safe-area-inset-left));
+    }
+
+    .top-header {
+        padding: 10px 12px;
+    }
+
+    .header-top-right {
+        width: 100%;
+        justify-content: flex-end;
+    }
+
+    .main-header {
+        padding: 0 12px;
+    }
+
+    body.landing-page .category-buttons-container {
+        padding: 0 12px;
+    }
+
+    body.landing-page .category-large-button {
+        flex: 1 1 100%;
+        min-width: 0;
+    }
+
+    body.landing-page .carousel-item {
+        flex: 0 0 100%;
+        min-width: 0;
+    }
+
+    .listings-container {
+        grid-template-columns: 1fr;
+        padding: 12px 0;
+        gap: 12px;
+    }
+
+    .categories-container {
+        grid-template-columns: 1fr;
+    }
+
+    .auth-modal {
+        padding: 10px;
+        align-items: flex-end;
+    }
+
+    .auth-modal-box {
+        min-width: 0;
+        margin: 0;
+        border-radius: 12px 12px 0 0;
+    }
+
+    .verify-email-banner {
+        padding: 12px;
+        font-size: 13px;
+    }
+
+    .account-cell-actions {
+        flex-direction: column;
+    }
+
+    .account-cell-actions button {
+        width: 100%;
+        min-height: 44px;
+    }
+}
+
+/* Small (phones landscape / large phones) */
+@media (min-width: 481px) and (max-width: 767px) {
+    .listings-container {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+    }
+}
+
+/* Tablet and up: ensure main content doesn't overflow */
+@media (max-width: 1024px) {
+    .main-header {
+        padding: 0 clamp(16px, 2.5vw, 24px);
+    }
+
+    aside {
+        width: clamp(200px, 28vw, 250px);
+    }
+}
+
+/* Admin users page */
+.admin-users-wrap {
+    max-width: 900px;
+    width: 100%;
+    margin: 0 auto;
+    padding: clamp(16px, 3vw, 20px);
+    box-sizing: border-box;
+}
+
+.admin-users-wrap h2 {
+    color: #eee;
+    margin-bottom: 16px;
+    font-size: clamp(1.1rem, 2.5vw, 1.4rem);
+}
+
+.admin-users-table-wrap {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin: 0 auto;
+    border-radius: 8px;
+}
+
+.admin-users-table {
+    width: 100%;
+    min-width: 320px;
+    border-collapse: collapse;
+    background: #2c2c2c;
+    border-radius: 8px;
+    overflow: hidden;
+}
+
+.admin-users-table th,
+.admin-users-table td {
+    padding: clamp(10px, 2vw, 14px);
+    text-align: left;
+    border-bottom: 1px solid #444;
+    color: #eee;
+    font-size: clamp(12px, 1.4vw, 14px);
+}
+
+.admin-users-table th {
+    background: #333;
+    font-weight: bold;
+}
+
+.admin-users-table select {
+    padding: 6px 10px;
+    min-height: 44px;
+    background: #444;
+    color: #fff;
+    border: 1px solid #555;
+    border-radius: 4px;
+    cursor: pointer;
+    font-size: inherit;
+}
+
+.admin-users-table .verified {
+    color: #6e6;
+}
+
+.admin-users-table .unverified {
+    color: #e66;
+}
+
+.admin-users-message {
+    margin-top: 12px;
+    color: #cfe8ff;
+    font-size: clamp(12px, 1.3vw, 14px);
+}
+
+.admin-users-message.error {
+    color: #e66;
+}
+
+/* Admin inventory main content */
+.admin-main {
+    display: flex;
+    flex-direction: column;
+    gap: clamp(12px, 2.5vw, 20px);
+    padding: clamp(12px, 3vw, 20px);
+    padding-left: max(clamp(12px, 3vw, 20px), env(safe-area-inset-left));
+    padding-right: max(clamp(12px, 3vw, 20px), env(safe-area-inset-right));
+    box-sizing: border-box;
+    width: 100%;
+    min-height: 0;
+}
+
+.admin-main h2,
+.admin-main h3 {
+    font-size: clamp(1rem, 2.2vw, 1.25rem);
+}
+
+@media (max-width: 600px) {
+    .admin-users-wrap {
+        padding: 12px;
+    }
+
+    .admin-users-table th,
+    .admin-users-table td {
+        padding: 10px 8px;
+        font-size: 13px;
+    }
+
+    .admin-users-table select {
+        min-height: 44px;
+        padding: 8px 10px;
+    }
+}
+
+/* Ensure images and media never overflow */
+img,
+video,
+embed,
+object {
+    max-width: 100%;
+    height: auto;
+}
+
+/* Prevent long URLs and text from breaking layout */
+.word-break {
+    word-break: break-word;
+    overflow-wrap: break-word;
 }

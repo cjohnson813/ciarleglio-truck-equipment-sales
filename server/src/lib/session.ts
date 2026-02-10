@@ -8,6 +8,7 @@ export interface SessionPayload {
   userId: string;
   username: string;
   role: 'USER' | 'ADMIN';
+  emailVerified: boolean;
   iat: number;
 }
 
@@ -40,7 +41,7 @@ export function verify(token: string): SessionPayload | null {
   const payload = JSON.parse(data) as SessionPayload;
   if (!payload.userId || !payload.role || !payload.iat) return null;
   if (payload.iat + MAX_AGE_SEC < Math.floor(Date.now() / 1000)) return null;
-  return payload;
+  return { ...payload, emailVerified: payload.emailVerified === true };
 }
 
 export function createSessionCookie(payload: Omit<SessionPayload, 'iat'>): { name: string; value: string; options: Record<string, unknown> } {

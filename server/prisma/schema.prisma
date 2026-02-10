@@ -14,14 +14,19 @@ enum UserRole {
 }
 
 model User {
-  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  createdAt     DateTime @default(now()) @db.Timestamptz(6)
-  updatedAt     DateTime @updatedAt @db.Timestamptz(6)
-  username      String   @unique
-  email         String   @unique
-  phone         String   @unique
-  passwordHash  String
-  role          UserRole @default(USER)
+  id                   String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  createdAt            DateTime  @default(now()) @db.Timestamptz(6)
+  updatedAt            DateTime  @updatedAt @db.Timestamptz(6)
+  username             String    @unique
+  email                String    @unique
+  phone                String    @unique
+  passwordHash         String
+  role                 UserRole  @default(USER)
+  emailVerifiedAt      DateTime? @db.Timestamptz(6)
+  emailVerifyToken     String?
+  emailVerifyExpires   DateTime? @db.Timestamptz(6)
+  passwordResetToken   String?
+  passwordResetExpires DateTime? @db.Timestamptz(6)
 
   @@map("users")
 }

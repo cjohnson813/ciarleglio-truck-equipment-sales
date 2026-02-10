@@ -6,6 +6,8 @@
   }
 
   function showView() {
+    var unverified = document.getElementById('account-unverified');
+    if (unverified) unverified.style.display = 'none';
     document.getElementById('account-view').style.display = 'block';
     document.getElementById('account-edit-form').style.display = 'none';
     document.getElementById('account-password-form').style.display = 'none';
@@ -36,17 +38,41 @@
     el.className = 'account-message ' + (isError ? 'error' : 'success');
   }
 
+  function showUnverifiedMessage() {
+    document.getElementById('account-view').style.display = 'none';
+    document.getElementById('account-edit-form').style.display = 'none';
+    document.getElementById('account-password-form').style.display = 'none';
+    var unverified = document.getElementById('account-unverified');
+    if (unverified) {
+      unverified.style.display = 'block';
+    }
+  }
+
   function loadAccount() {
     fetchAccount()
       .then(function (res) {
         if (res.status === 401) {
           window.location.href = 'index.html';
-          return null;
+          return { _status: 401 };
         }
-        return res.json();
+        if (res.status === 403) {
+          return res.json().then(function (data) {
+            return { _status: 403, code: data && data.code, error: data && data.error };
+          });
+        }
+        return res.json().then(function (data) { return { _status: 200, data: data }; });
       })
-      .then(function (data) {
-        if (!data) return;
+      .then(function (result) {
+        if (!result || result._status === 401) return;
+        if (result._status === 403 && result.code === 'EMAIL_NOT_VERIFIED') {
+          showUnverifiedMessage();
+          return;
+        }
+        if (result._status !== 200 || !result.data) {
+          window.location.href = 'index.html';
+          return;
+        }
+        var data = result.data;
         document.getElementById('disp-username').textContent = data.username || '—';
         document.getElementById('disp-email').textContent = data.email || '—';
         document.getElementById('disp-phone').textContent = data.phone || '—';
@@ -54,8 +80,12 @@
         document.getElementById('edit-email').value = data.email || '';
         document.getElementById('edit-phone').value = data.phone || '';
 
-        var invBtn = document.getElementById('account-inventory-btn');
-        if (invBtn && data.role === 'ADMIN') invBtn.style.display = 'inline-block';
+        var adminBtns = document.getElementById('account-admin-buttons');
+        if (adminBtns && data.role === 'ADMIN') {
+          adminBtns.style.display = 'flex';
+        }
+        var unverified = document.getElementById('account-unverified');
+        if (unverified) unverified.style.display = 'none';
       })
       .catch(function () {
         window.location.href = 'index.html';
@@ -125,6 +155,23 @@
 
   function init() {
     loadAccount();
+
+    var resendBtn = document.getElementById('account-resend-verify');
+    if (resendBtn) {
+      resendBtn.addEventListener('click', function () {
+        resendBtn.disabled = true;
+        fetch(apiBase + '/api/auth/resend-verification', { method: 'POST', credentials: 'include' })
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            alert(data.message || 'Verification email sent.');
+            resendBtn.disabled = false;
+          })
+          .catch(function () {
+            alert('Failed to send.');
+            resendBtn.disabled = false;
+          });
+      });
+    }
 
     document.getElementById('btn-edit-info').addEventListener('click', showEditForm);
     document.getElementById('btn-cancel-edit').addEventListener('click', showView);

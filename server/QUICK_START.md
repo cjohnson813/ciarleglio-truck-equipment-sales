@@ -145,7 +145,9 @@ The site uses cookie-based sessions and two roles: **User** and **Admin**. The *
 1. Add to `server/.env` (use a long random string in production):
    ```env
    SESSION_SECRET="your-secret-at-least-32-chars"
+   FRONTEND_BASE_URL="http://localhost:8000"
    ```
+   For **email verification** and **forgot password** links to work, set `FRONTEND_BASE_URL` to the URL where you serve the frontend (e.g. `http://localhost:8000`). To actually send emails, set `MAIL_HOST`, `MAIL_PORT`, `MAIL_USER`, `MAIL_PASS`, and optionally `MAIL_FROM` and `MAIL_SECURE`. If `MAIL_HOST` is not set, verification and reset links are logged to the server console.
 2. Run migrations so the `users` table exists:
    ```powershell
    cd server

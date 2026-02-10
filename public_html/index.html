@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#2a60a7">
     <title>Ciarleglio Truck and Equipment Sales</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -51,6 +52,7 @@
             <form id="auth-login-form" class="auth-form">
                 <label>Username or email <input type="text" name="login" required autocomplete="username"></label>
                 <label>Password <input type="password" name="password" required autocomplete="current-password"></label>
+                <p class="auth-form-extra"><a href="#" id="auth-forgot-link">Forgot password?</a></p>
                 <button type="submit" class="auth-submit">Log in</button>
                 <p id="auth-login-error" class="auth-error" role="alert"></p>
             </form>
@@ -62,7 +64,16 @@
                 <button type="submit" class="auth-submit">Create account</button>
                 <p id="auth-signup-error" class="auth-error" role="alert"></p>
             </form>
+            <div id="auth-forgot-form" class="auth-form" style="display: none;">
+                <label>Email <input type="email" id="auth-forgot-email" placeholder="Enter your email" autocomplete="email"></label>
+                <button type="button" id="auth-forgot-submit" class="auth-submit">Send reset link</button>
+                <p><a href="#" id="auth-forgot-back">Back to login</a></p>
+                <p id="auth-forgot-message" class="auth-error" role="alert"></p>
+            </div>
         </div>
+    </div>
+    <div id="verify-email-banner" class="verify-email-banner" style="display: none;">
+        Please verify your email to access your account. <button type="button" id="verify-resend-btn">Resend verification email</button>
     </div>
 
     <!-- Gap between headers -->

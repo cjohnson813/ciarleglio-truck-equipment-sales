@@ -4,6 +4,7 @@ import prisma from '../lib/prisma.js';
 import { hashPassword, verifyPassword } from '../lib/auth.js';
 import { normalizeEmail, normalizePhone } from '../lib/normalize.js';
 import { requireAuth, AuthRequest } from '../middleware/requireAuth.js';
+import { requireVerified } from '../middleware/requireVerified.js';
 
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const phoneRegex = /^\d{10,15}$/;
@@ -101,6 +102,7 @@ export async function changePassword(req: AuthRequest, res: Response) {
 
 const accountRouter = Router();
 accountRouter.use(requireAuth);
+accountRouter.use(requireVerified);
 accountRouter.get('/', getAccount);
 accountRouter.put('/', updateAccount);
 accountRouter.post('/change-password', changePassword);

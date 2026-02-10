@@ -1,5 +1,6 @@
 (function () {
   var apiBase = (typeof window !== 'undefined' && window.API_BASE) ? String(window.API_BASE).trim() : 'http://localhost:4000';
+  var emailVerified = false;
 
   function getAuthLink() {
     return document.getElementById('auth-link');
@@ -18,6 +19,16 @@
     if (!link) return;
     link.textContent = 'Login/Sign Up';
     link.href = '#';
+    emailVerified = false;
+    updateVerifyBanner();
+  }
+
+  function updateVerifyBanner() {
+    var banner = document.getElementById('verify-email-banner');
+    if (!banner) return;
+    var link = getAuthLink();
+    var isLoggedIn = link && link.getAttribute('href') !== '#' && !link.href.endsWith('#');
+    banner.style.display = isLoggedIn && !emailVerified ? 'block' : 'none';
   }
 
   function checkSession() {
@@ -28,7 +39,11 @@
         return null;
       })
       .then(function (data) {
-        if (data && data.user && data.user.username) setLoggedIn(data.user.username);
+        if (data && data.user && data.user.username) {
+          setLoggedIn(data.user.username);
+          emailVerified = data.user.emailVerified === true;
+          updateVerifyBanner();
+        }
       })
       .catch(function () { setLoggedOut(); });
   }
@@ -40,6 +55,9 @@
       modal.setAttribute('aria-hidden', 'false');
       document.getElementById('auth-login-error').textContent = '';
       document.getElementById('auth-signup-error').textContent = '';
+      var forgotMsg = document.getElementById('auth-forgot-message');
+      if (forgotMsg) forgotMsg.textContent = '';
+      showLoginForm();
     }
   }
 
@@ -51,11 +69,39 @@
     }
   }
 
+  function showLoginForm() {
+    var loginForm = document.getElementById('auth-login-form');
+    var signupForm = document.getElementById('auth-signup-form');
+    var forgotForm = document.getElementById('auth-forgot-form');
+    var tabs = document.querySelectorAll('.auth-tabs');
+    if (tabs.length) tabs[0].style.display = 'flex';
+    if (loginForm) loginForm.style.display = 'block';
+    if (signupForm) signupForm.style.display = 'none';
+    if (forgotForm) forgotForm.style.display = 'none';
+    document.querySelectorAll('.auth-tab').forEach(function (t) { t.classList.remove('active'); });
+    document.querySelectorAll('.auth-tab[data-tab="login"]').forEach(function (t) { t.classList.add('active'); });
+  }
+
+  function showForgotForm() {
+    var loginForm = document.getElementById('auth-login-form');
+    var signupForm = document.getElementById('auth-signup-form');
+    var forgotForm = document.getElementById('auth-forgot-form');
+    var tabs = document.querySelectorAll('.auth-tabs');
+    if (tabs.length) tabs[0].style.display = 'none';
+    if (loginForm) loginForm.style.display = 'none';
+    if (signupForm) signupForm.style.display = 'none';
+    if (forgotForm) forgotForm.style.display = 'block';
+  }
+
   function switchTab(tabName) {
     var loginForm = document.getElementById('auth-login-form');
     var signupForm = document.getElementById('auth-signup-form');
-    var tabs = document.querySelectorAll('.auth-tab');
-    tabs.forEach(function (t) {
+    var forgotForm = document.getElementById('auth-forgot-form');
+    var tabs = document.querySelectorAll('.auth-tabs');
+    if (tabs.length) tabs[0].style.display = 'flex';
+    if (forgotForm) forgotForm.style.display = 'none';
+    var tabButtons = document.querySelectorAll('.auth-tab');
+    tabButtons.forEach(function (t) {
       t.classList.toggle('active', t.getAttribute('data-tab') === tabName);
     });
     if (tabName === 'login') {
@@ -91,6 +137,64 @@
       });
     });
 
+    var forgotLink = document.getElementById('auth-forgot-link');
+    if (forgotLink) {
+      forgotLink.addEventListener('click', function (e) {
+        e.preventDefault();
+        showForgotForm();
+      });
+    }
+    var forgotBack = document.getElementById('auth-forgot-back');
+    if (forgotBack) {
+      forgotBack.addEventListener('click', function (e) {
+        e.preventDefault();
+        showLoginForm();
+      });
+    }
+    var forgotSubmit = document.getElementById('auth-forgot-submit');
+    var forgotEmail = document.getElementById('auth-forgot-email');
+    var forgotMsg = document.getElementById('auth-forgot-message');
+    if (forgotSubmit && forgotEmail && forgotMsg) {
+      forgotSubmit.addEventListener('click', function () {
+        var email = forgotEmail.value.trim();
+        if (!email) { forgotMsg.textContent = 'Enter your email'; forgotMsg.style.color = '#c00'; return; }
+        forgotMsg.textContent = 'Sending...';
+        forgotMsg.style.color = '#333';
+        fetch(apiBase + '/api/auth/forgot-password', {
+          method: 'POST',
+          credentials: 'include',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email: email })
+        })
+          .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+          .then(function (r) {
+            forgotMsg.textContent = (r.data && r.data.message) ? r.data.message : 'If that email is registered, you will receive a reset link.';
+            forgotMsg.style.color = '#333';
+          })
+          .catch(function () {
+            forgotMsg.textContent = 'Network error';
+            forgotMsg.style.color = '#c00';
+          });
+      });
+    }
+
+    var resendBtn = document.getElementById('verify-resend-btn');
+    if (resendBtn) {
+      resendBtn.addEventListener('click', function () {
+        resendBtn.disabled = true;
+        fetch(apiBase + '/api/auth/resend-verification', { method: 'POST', credentials: 'include' })
+          .then(function (res) { return res.json(); })
+          .then(function (data) {
+            alert(data.message || 'Verification email sent.');
+            resendBtn.disabled = false;
+          })
+          .catch(function () {
+            alert('Failed to send.');
+            resendBtn.disabled = false;
+          });
+      });
+    }
+
     var loginForm = document.getElementById('auth-login-form');
     if (loginForm) {
       loginForm.addEventListener('submit', function (e) {
@@ -110,6 +214,8 @@
           .then(function (r) {
             if (r.ok && r.data.user) {
               setLoggedIn(r.data.user.username);
+              emailVerified = r.data.user.emailVerified === true;
+              updateVerifyBanner();
               closeModal();
               loginForm.reset();
             } else {
@@ -147,8 +253,11 @@
           .then(function (r) {
             if (r.ok && r.data.user) {
               setLoggedIn(r.data.user.username);
+              emailVerified = false;
+              updateVerifyBanner();
               closeModal();
               signupForm.reset();
+              if (r.data.message) alert(r.data.message);
             } else {
               errEl.textContent = (r.data && r.data.error) ? r.data.error : 'Sign up failed';
             }

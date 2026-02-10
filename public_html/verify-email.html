@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="#2a60a7">
+    <title>Verify Email - Ciarleglio Truck-Equip</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body class="account-page">
+    <div class="account-wrap">
+        <a href="index.html" class="account-back">&larr; Back to Home</a>
+        <div class="account-cell">
+            <h2>Verify your email</h2>
+            <p id="verify-status">Verifying...</p>
+            <p><a href="index.html" id="verify-home-link" style="display:none;">Go to Home</a></p>
+        </div>
+    </div>
+    <script>
+(function () {
+  var apiBase = (window.API_BASE || '').trim() || 'http://localhost:4000';
+  var params = new URLSearchParams(window.location.search);
+  var token = params.get('token');
+  var status = document.getElementById('verify-status');
+  var homeLink = document.getElementById('verify-home-link');
+  if (!token) {
+    status.textContent = 'Missing verification token.';
+    return;
+  }
+  fetch(apiBase + '/api/auth/verify-email', {
+    method: 'POST',
+    credentials: 'include',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token: token })
+  })
+    .then(function (res) { return res.json().then(function (data) { return { ok: res.ok, data: data }; }); })
+    .then(function (r) {
+      if (r.ok) {
+        status.textContent = 'Your email is verified. You now have full access to your account.';
+        homeLink.style.display = 'inline';
+      } else {
+        status.textContent = (r.data && r.data.error) ? r.data.error : 'Invalid or expired link.';
+      }
+    })
+    .catch(function () {
+      status.textContent = 'Network error. Try again later.';
+    });
+})();
+    </script>
+</body>
+</html>
