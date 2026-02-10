@@ -135,6 +135,21 @@ Should return: `[]` (empty array initially)
   - Frontend should be served from `http://localhost:8000` (not file://)
 - **"Cannot find module"**: Run `npm install` in the `server` directory
 
+## Auth & Login
+
+The site uses cookie-based sessions and two roles: **User** and **Admin**. The **first account** you create becomes an Admin; all later accounts are Users. Admins can use the Inventory (admin) panel when logged in without setting a separate admin token.
+
+1. Add to `server/.env` (use a long random string in production):
+   ```env
+   SESSION_SECRET="your-secret-at-least-32-chars"
+   ```
+2. Run migrations so the `users` table exists:
+   ```powershell
+   cd server
+   npm run prisma:migrate -- --name add_users
+   ```
+3. On the homepage (`index.html`), use **Login/Sign Up** (top right) to create an account or log in. When logged in, your username appears there and links to **Account** (`account.html`), where you can edit your info or change your password. Admins see an **Inventory** button on the account page that links to the admin panel.
+
 ## Admin Token
 
 The admin token is set in `server/.env` as `ADMIN_TOKEN`. 

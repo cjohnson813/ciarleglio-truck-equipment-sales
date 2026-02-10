@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Account - Ciarleglio Truck and Equipment Sales</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <script src="js/account.js" defer></script>
+</head>
+<body class="account-page">
+    <div class="account-wrap">
+        <a href="index.html" class="account-back">&larr; Back to Home</a>
+
+        <a href="admin.html" id="account-inventory-btn" class="account-inventory-btn" style="display: none;">Inventory</a>
+
+        <div class="account-cell">
+            <h2>Account information</h2>
+            <div id="account-view">
+                <div class="account-field">
+                    <label>Username</label>
+                    <div class="account-field-readonly" id="disp-username">—</div>
+                </div>
+                <div class="account-field">
+                    <label>Email</label>
+                    <div class="account-field-readonly" id="disp-email">—</div>
+                </div>
+                <div class="account-field">
+                    <label>Phone</label>
+                    <div class="account-field-readonly" id="disp-phone">—</div>
+                </div>
+                <div class="account-cell-actions">
+                    <button type="button" id="btn-edit-info">Edit information</button>
+                    <button type="button" id="btn-change-password">Change password</button>
+                </div>
+            </div>
+
+            <div id="account-edit-form" class="account-edit-form" style="display: none;">
+                <div class="account-field">
+                    <label>Username (min 8 characters)</label>
+                    <input type="text" id="edit-username" minlength="8" />
+                </div>
+                <div class="account-field">
+                    <label>Email</label>
+                    <input type="email" id="edit-email" />
+                </div>
+                <div class="account-field">
+                    <label>Phone</label>
+                    <input type="tel" id="edit-phone" placeholder="e.g. 8608767740" />
+                </div>
+                <div class="account-field-actions">
+                    <button type="button" id="btn-save-edit">Save</button>
+                    <button type="button" id="btn-cancel-edit" class="secondary">Cancel</button>
+                </div>
+                <p id="edit-message" class="account-message"></p>
+            </div>
+
+            <div id="account-password-form" class="account-password-form" style="display: none;">
+                <label>Current password</label>
+                <input type="password" id="pw-current" autocomplete="current-password" />
+                <label>New password (min 8 characters)</label>
+                <input type="password" id="pw-new" minlength="8" autocomplete="new-password" />
+                <label>Confirm new password</label>
+                <input type="password" id="pw-confirm" minlength="8" autocomplete="new-password" />
+                <div class="account-field-actions" style="margin-top: 12px;">
+                    <button type="button" id="btn-save-password">Change password</button>
+                    <button type="button" id="btn-cancel-password" class="secondary">Cancel</button>
+                </div>
+                <p id="password-message" class="account-message"></p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
