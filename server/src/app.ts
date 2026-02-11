@@ -10,6 +10,7 @@ import { accountRouter } from './routes/account.js';
 import adminUsersRouter from './routes/adminUsers.js';
 import { requireAdmin } from './middleware/adminAuth.js';
 import { optionalSession } from './middleware/optionalSession.js';
+import prisma from './lib/prisma.js';
 
 dotenv.config();
 
@@ -30,6 +31,16 @@ app.use(cookieParser());
 
 app.get('/health', (_req, res) => {
   res.json({ status: 'ok' });
+});
+
+app.get('/api/health', async (_req, res) => {
+  try {
+    await prisma.$queryRaw`SELECT 1`;
+    res.json({ status: 'ok', database: 'connected' });
+  } catch (err) {
+    console.error(err);
+    res.status(503).json({ status: 'error', database: 'disconnected' });
+  }
 });
 
 app.use('/api/auth', authRouter);
