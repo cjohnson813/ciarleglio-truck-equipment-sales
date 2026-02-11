@@ -1,4 +1,6 @@
 import express from 'express';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import cors from 'cors';
 import cookieParser from 'cookie-parser';
 import dotenv from 'dotenv';
@@ -10,6 +12,9 @@ import { requireAdmin } from './middleware/adminAuth.js';
 import { optionalSession } from './middleware/optionalSession.js';
 
 dotenv.config();
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+const publicDir = path.join(__dirname, '..', '..', 'public_html');
 
 const app = express();
 
@@ -33,6 +38,9 @@ app.use('/api/inventory', inventoryRouter);
 
 app.use('/api/admin/inventory', optionalSession, requireAdmin, inventoryRouter);
 app.use('/api/admin/users', adminUsersRouter);
+
+// Serve frontend (HTML/CSS/JS) so the site can be viewed on the same port
+app.use(express.static(publicDir, { index: 'index.html' }));
 
 export default app;
 
