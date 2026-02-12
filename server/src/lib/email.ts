@@ -59,3 +59,50 @@ export async function sendPasswordResetEmail(email: string, token: string): Prom
     console.log('[Email] Password reset link (no MAIL_HOST set):', link);
   }
 }
+
+const CONTACT_EMAIL = process.env.CONTACT_EMAIL || 'joey@ciarlegliotruckandequipmentsales.com';
+
+export interface ContactPayload {
+  name: string;
+  phone: string;
+  email: string;
+  business?: string;
+  message: string;
+}
+
+export async function sendContactEmail(payload: ContactPayload): Promise<void> {
+  const { name, phone, email, business, message } = payload;
+  const html = `
+    <h2>Contact form submission – ${APP_NAME}</h2>
+    <table style="border-collapse: collapse; max-width: 560px;">
+      <tr><td style="padding: 8px 12px; border: 1px solid #ddd;"><strong>Name</strong></td><td style="padding: 8px 12px; border: 1px solid #ddd;">${escapeHtml(name)}</td></tr>
+      <tr><td style="padding: 8px 12px; border: 1px solid #ddd;"><strong>Phone</strong></td><td style="padding: 8px 12px; border: 1px solid #ddd;">${escapeHtml(phone)}</td></tr>
+      <tr><td style="padding: 8px 12px; border: 1px solid #ddd;"><strong>Email</strong></td><td style="padding: 8px 12px; border: 1px solid #ddd;">${escapeHtml(email)}</td></tr>
+      ${business ? `<tr><td style="padding: 8px 12px; border: 1px solid #ddd;"><strong>Business</strong></td><td style="padding: 8px 12px; border: 1px solid #ddd;">${escapeHtml(business)}</td></tr>` : ''}
+      <tr><td style="padding: 8px 12px; border: 1px solid #ddd; vertical-align: top;"><strong>Message</strong></td><td style="padding: 8px 12px; border: 1px solid #ddd; white-space: pre-wrap;">${escapeHtml(message)}</td></tr>
+    </table>
+    <p style="margin-top: 16px; color: #666; font-size: 12px;">Sent via website contact form.</p>
+  `;
+  const text = `Contact form\nName: ${name}\nPhone: ${phone}\nEmail: ${email}${business ? `\nBusiness: ${business}` : ''}\n\nMessage:\n${message}`;
+  if (transporter) {
+    await transporter.sendMail({
+      from: FROM,
+      to: CONTACT_EMAIL,
+      replyTo: email,
+      subject: `Contact form: ${name} – ${APP_NAME}`,
+      text,
+      html
+    });
+  } else {
+    console.log('[Email] Contact form (no MAIL_HOST set):', { name, email, message: message.slice(0, 80) + '...' });
+  }
+}
+
+function escapeHtml(s: string): string {
+  return s
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
