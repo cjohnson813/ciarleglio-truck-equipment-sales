@@ -8,7 +8,9 @@
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/animejs@3.2.1/lib/anime.min.js"></script>
+    <script src="js/config.js"></script>
     <script src="js/auth.js" defer></script>
+    <script src="js/contact.js" defer></script>
     <script src="js/script.js" defer></script>
 </head>
 <body>
@@ -169,22 +171,22 @@
                 <img src="images/company-logo.png" alt="Company Logo" />
             </banner>
             <banner class="contact-section">
-                <div class="contact-item">
-                    <span class="icon">📘</span>
-                    <span class="contact-text">Facebook Page</span>
-                </div>
-                <div class="contact-item">
-                    <span class="icon">📷</span>
-                    <span class="contact-text">Instagram Handle</span>
-                </div>
-                <div class="contact-item">
+                <a href="https://www.facebook.com/p/Ciarleglio-Truck-And-Equipment-Sales-6158163966332/" class="contact-item contact-link" target="_blank" rel="noopener noreferrer" aria-label="Facebook">
+                    <span class="icon"><i class="fab fa-facebook-f"></i></span>
+                    <span class="contact-text">Facebook</span>
+                </a>
+                <a href="https://www.instagram.com/ciarlegliotruckandequipment?igsh=ZGtlaWllbjFqcW1j" class="contact-item contact-link" target="_blank" rel="noopener noreferrer" aria-label="Instagram">
+                    <span class="icon"><i class="fab fa-instagram"></i></span>
+                    <span class="contact-text">Instagram</span>
+                </a>
+                <a href="mailto:joey@ciarlegliotruckandequipmentsales.com" class="contact-item contact-link" aria-label="Email">
                     <span class="icon">✉️</span>
-                    <span class="contact-text">info@company.com</span>
-                </div>
-                <div class="contact-item">
+                    <span class="contact-text">joey@ciarlegliotruckandequipmentsales.com</span>
+                </a>
+                <a href="tel:8608767740" class="contact-item contact-link" aria-label="Phone">
                     <span class="icon">📞</span>
-                    <span class="contact-text">(555) 123-4567</span>
-                </div>
+                    <span class="contact-text">(860) 876-7740</span>
+                </a>
             </banner>
         </div>
 
@@ -222,7 +224,7 @@
                 </select>
             </button>
 
-            <button>CONTACT US
+            <button type="button" data-contact-open>CONTACT US
                 <select>
                     <option>Select 1</option>
                     <option>Select 2</option>
@@ -230,6 +232,24 @@
                 </select>
             </button>
         </div>
+
+    <!-- Contact Us modal -->
+    <div id="contact-modal" class="contact-modal auth-modal" aria-hidden="true" role="dialog" aria-labelledby="contact-modal-title">
+        <div class="contact-modal-backdrop auth-modal-backdrop"></div>
+        <div class="auth-modal-box contact-modal-box">
+            <button type="button" id="contact-close" class="auth-modal-close" aria-label="Close">&times;</button>
+            <h2 id="contact-modal-title">Contact Us</h2>
+            <form id="contact-form" class="auth-form">
+                <label>Name (required) <input type="text" id="contact-name" required maxlength="200" autocomplete="name" /></label>
+                <label>Phone (required) <input type="tel" id="contact-phone" required maxlength="30" autocomplete="tel" /></label>
+                <label>Email (required) <input type="email" id="contact-email" required maxlength="200" autocomplete="email" /></label>
+                <label>Business name (optional) <input type="text" id="contact-business" maxlength="200" autocomplete="organization" /></label>
+                <label>Message (required) <textarea id="contact-message" required rows="6" maxlength="10000" placeholder="Your message..."></textarea></label>
+                <p id="contact-status" class="contact-status" role="alert"></p>
+                <button type="submit" id="contact-submit" class="auth-submit">Send message</button>
+            </form>
+        </div>
+    </div>
 
         <!-- Search Bar -->
         <div class="search-container">

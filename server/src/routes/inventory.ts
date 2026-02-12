@@ -6,7 +6,14 @@ import crypto from 'crypto';
 import { supabase, INVENTORY_BUCKET } from '../lib/supabase.js';
 
 const router = Router();
-const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 15 * 1024 * 1024 } });
+
+const ALLOWED_MIMES = ['image/jpeg', 'image/png', 'image/webp'];
+const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+  limits: { fileSize: MAX_FILE_SIZE }
+});
 
 const conditionEnum = z.enum(['NEW', 'LIKE_NEW', 'EXCELLENT', 'GOOD', 'FAIR', 'NEEDS_WORK']);
 
@@ -115,6 +122,12 @@ router.post('/:id/images', upload.array('images'), async (req, res) => {
 
     const files = (req.files as Express.Multer.File[]) || [];
     if (files.length === 0) return res.status(400).json({ error: 'No files uploaded' });
+
+    for (const file of files) {
+      if (!file.mimetype || !ALLOWED_MIMES.includes(file.mimetype)) {
+        return res.status(400).json({ error: 'Invalid file type. Use JPEG, PNG, or WebP only.' });
+      }
+    }
 
     // ensure bucket exists (no-op if already exists)
     await supabase.storage.createBucket(INVENTORY_BUCKET, { public: true }).catch(() => {});

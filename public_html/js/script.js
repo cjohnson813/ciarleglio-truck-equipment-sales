@@ -263,19 +263,13 @@ document.addEventListener('DOMContentLoaded', function() {
         }
 
         button.addEventListener('click', function() {
-            // Get the text content, excluding the select element
-            const buttonText = this.childNodes[0].textContent.trim();
-            console.log('Main button clicked:', buttonText);
-            
-            // Handle different button clicks
+            if (this.hasAttribute && this.hasAttribute('data-contact-open')) return;
+            const buttonText = (this.childNodes[0] && this.childNodes[0].textContent) ? this.childNodes[0].textContent.trim() : '';
             if (buttonText === 'HOME') {
                 navigateToPage('index.html');
-            } else if (buttonText === 'FINANCING' || buttonText === 'CONTACT US') {
-                // These buttons don't navigate to listings page
-                console.log('Special button clicked:', buttonText);
-                // Add specific functionality for these buttons later
+            } else if (buttonText === 'FINANCING' || buttonText === 'CONTACT US' || buttonText === 'Contact Us') {
+                // Contact Us opens modal via contact.js; Financing TBD
             } else {
-                // All other buttons navigate to listings page
                 navigateToPage('listings.html');
             }
         });
@@ -356,7 +350,7 @@ document.addEventListener('DOMContentLoaded', function() {
                     const card = document.createElement('div');
                     card.className = 'listing-item';
                     card.innerHTML = `
-                        ${cover ? `<img src="${cover}" alt="cover" style="width:100%; height:180px; object-fit:cover; border-radius:6px; margin-bottom:10px;"/>` : ''}
+                        ${cover ? `<img src="${cover}" alt="${item.year} ${item.make} ${item.model}"/>` : '<div class="listing-item-image-placeholder">No Image</div>'}
                         <h3 class="listing-title">${item.year} ${item.make} ${item.model}</h3>
                         <div class="listing-details">
                             <div class="listing-category">${item.category}${item.subcategory ? ' • ' + item.subcategory : ''}</div>
@@ -477,11 +471,11 @@ document.addEventListener('DOMContentLoaded', function() {
         function renderCarouselItems(items) {
             carouselItems.innerHTML = '';
             items.forEach(item => {
-                const cover = item.image || (item.images && item.images.length > 0) ? item.images[0].publicUrl : '';
+                const cover = item.image || (item.images && item.images[0] && item.images[0].publicUrl) || '';
                 const card = document.createElement('div');
                 card.className = 'carousel-item';
                 card.innerHTML = `
-                    ${cover ? `<img src="${cover}" alt="${item.year} ${item.make} ${item.model}" />` : '<div style="width:100%; height:180px; background-color:#ddd; border-radius:6px; margin-bottom:10px; display:flex; align-items:center; justify-content:center; color:#999;">No Image</div>'}
+                    ${cover ? `<img src="${cover}" alt="${item.year} ${item.make} ${item.model}" />` : '<div class="carousel-item-image-placeholder">No Image</div>'}
                     <div class="carousel-item-title">${item.year} ${item.make} ${item.model}</div>
                     <div class="carousel-item-details">
                         <div>${item.category}${item.subcategory ? ' • ' + item.subcategory : ''}</div>

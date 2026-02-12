@@ -1,16 +1,37 @@
 document.addEventListener('DOMContentLoaded', () => {
-    const apiBase = (window.ADMIN_API_BASE || '').trim() || 'http://localhost:4000';
+    const apiBase = (typeof window !== 'undefined' && window.API_BASE ? String(window.API_BASE).trim() : '') || 'http://localhost:4000';
     let adminToken = localStorage.getItem('ADMIN_TOKEN') || '';
     const form = document.getElementById('item-form');
     const itemSelect = document.getElementById('item-select');
     const imagesInput = document.getElementById('images');
     const uploadBtn = document.getElementById('upload-images');
     const formStatus = document.getElementById('form-status');
+    const formLoading = document.getElementById('form-loading');
+    const formValidationMsg = document.getElementById('form-validation-msg');
     const uploadStatus = document.getElementById('upload-status');
     const adminInventory = document.getElementById('admin-inventory');
+    const saveBtn = document.getElementById('save-item');
+
+    function authHeaders() {
+        const h = { 'Content-Type': 'application/json' };
+        if (adminToken) h['Authorization'] = 'Bearer ' + adminToken;
+        return h;
+    }
+
+    function setFormLoading(loading) {
+        if (formLoading) formLoading.style.display = loading ? 'inline' : 'none';
+        if (saveBtn) saveBtn.disabled = loading;
+    }
+
+    function showValidation(msg) {
+        if (formValidationMsg) {
+            formValidationMsg.textContent = msg || '';
+            formValidationMsg.style.display = msg ? 'block' : 'none';
+        }
+    }
 
     async function fetchInventory() {
-        const res = await fetch(`${apiBase}/api/inventory`);
+        const res = await fetch(`${apiBase}/api/inventory`, { credentials: 'include' });
         const data = await res.json();
         return data;
     }
@@ -33,7 +54,7 @@ document.addEventListener('DOMContentLoaded', () => {
             div.className = 'listing-item';
             div.innerHTML = `
                 <div style="display:flex; flex-direction:column; gap:10px;">
-                    ${cover ? `<img src="${cover}" alt="cover" style="width:100%; height:150px; object-fit:cover; border-radius:6px;"/>` : ''}
+                    ${cover ? `<img src="${cover}" alt="${item.year} ${item.make} ${item.model}" style="width:100%; height:150px; object-fit:cover; border-radius:6px;"/>` : '<div class="listing-item-image-placeholder" style="height:150px;">No Image</div>'}
                     <h3 class="listing-title">${item.year} ${item.make} ${item.model}</h3>
                     <div class="listing-details">
                         <div class="listing-category">${item.category}${item.subcategory ? ' • ' + item.subcategory : ''}</div>
@@ -56,7 +77,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     form.addEventListener('submit', async (e) => {
         e.preventDefault();
-        formStatus.textContent = 'Saving...';
+        showValidation('');
+        formStatus.textContent = '';
         const payload = {
             category: document.getElementById('category').value.trim(),
             subcategory: document.getElementById('subcategory').value.trim() || undefined,
@@ -67,6 +89,12 @@ document.addEventListener('DOMContentLoaded', () => {
             year: Number(document.getElementById('year').value),
             condition: document.getElementById('condition').value
         };
+        if (!payload.mileage && payload.hours === undefined) {
+            showValidation('Either mileage (trucks) or hours (equipment) is required.');
+            return;
+        }
+        setFormLoading(true);
+        formStatus.textContent = 'Saving...';
         try {
             const idField = document.getElementById('item-id').value.trim();
             const isUpdate = !!idField;
@@ -74,32 +102,76 @@ document.addEventListener('DOMContentLoaded', () => {
             const method = isUpdate ? 'PUT' : 'POST';
             const res = await fetch(url, {
                 method,
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
-                body: JSON.stringify(payload)
+                headers: authHeaders(),
+                body: JSON.stringify(payload),
+                credentials: 'include'
             });
+            const errBody = await res.json().catch(() => ({}));
             if (!res.ok) {
-                const err = await res.json().catch(() => ({}));
-                throw new Error(err.error || 'Failed to save');
+                showValidation(errBody.error || 'Failed to save');
+                formStatus.textContent = '';
+                return;
             }
             formStatus.textContent = 'Saved!';
             (form.reset && form.reset());
             document.getElementById('item-id').value = '';
             await reload();
         } catch (err) {
-            formStatus.textContent = `Error: ${err.message}`;
+            showValidation(err.message || 'Failed to save');
+            formStatus.textContent = '';
+        } finally {
+            setFormLoading(false);
         }
     });
 
+    const MIN_IMAGE_WIDTH = 400;
+    const MIN_IMAGE_HEIGHT = 300;
+    function checkImageDimensions(files) {
+        return new Promise((resolve) => {
+            const allowed = [];
+            const tooSmall = [];
+            let pending = 0;
+            function done() {
+                if (--pending === 0) resolve({ allowed, tooSmall });
+            }
+            for (let i = 0; i < files.length; i++) {
+                const file = files[i];
+                if (!file.type || !file.type.startsWith('image/')) { allowed.push(file); continue; }
+                pending++;
+                const img = new Image();
+                const url = URL.createObjectURL(file);
+                img.onload = function () {
+                    URL.revokeObjectURL(url);
+                    if (img.naturalWidth >= MIN_IMAGE_WIDTH && img.naturalHeight >= MIN_IMAGE_HEIGHT) allowed.push(file);
+                    else tooSmall.push({ name: file.name, w: img.naturalWidth, h: img.naturalHeight });
+                    done();
+                };
+                img.onerror = function () { URL.revokeObjectURL(url); allowed.push(file); done(); };
+                img.src = url;
+            }
+            if (pending === 0) resolve({ allowed, tooSmall });
+        });
+    }
+
     uploadBtn.addEventListener('click', async () => {
-        uploadStatus.textContent = 'Uploading...';
         const itemId = itemSelect.value;
         if (!itemId) { uploadStatus.textContent = 'Select an item first'; return; }
         const files = imagesInput.files;
         if (!files || files.length === 0) { uploadStatus.textContent = 'Choose images'; return; }
+        const fileList = Array.from(files);
+        const { allowed, tooSmall } = await checkImageDimensions(fileList);
+        if (tooSmall.length > 0) {
+            const msg = tooSmall.map(s => s.name + ' (' + s.w + '×' + s.h + ')').join(', ');
+            if (!confirm('Some images are below recommended size (min ' + MIN_IMAGE_WIDTH + '×' + MIN_IMAGE_HEIGHT + ' px): ' + msg + '. Upload anyway?')) return;
+        }
+        const toUpload = allowed.length ? allowed : fileList;
+        uploadStatus.textContent = 'Uploading...';
         const formData = new FormData();
-        Array.from(files).forEach(f => formData.append('images', f));
+        toUpload.forEach(f => formData.append('images', f));
+        const headers = {};
+        if (adminToken) headers['Authorization'] = 'Bearer ' + adminToken;
         try {
-            const res = await fetch(`${apiBase}/api/admin/inventory/${itemId}/images`, { method: 'POST', headers: { 'Authorization': `Bearer ${adminToken}` }, body: formData });
+            const res = await fetch(`${apiBase}/api/admin/inventory/${itemId}/images`, { method: 'POST', headers, body: formData, credentials: 'include' });
             if (!res.ok) {
                 const err = await res.json().catch(() => ({}));
                 throw new Error(err.error || 'Failed to upload');
@@ -108,7 +180,7 @@ document.addEventListener('DOMContentLoaded', () => {
             imagesInput.value = '';
             await reload();
         } catch (err) {
-            uploadStatus.textContent = `Error: ${err.message}`;
+            uploadStatus.textContent = 'Error: ' + err.message;
         }
     });
 
@@ -129,29 +201,58 @@ document.addEventListener('DOMContentLoaded', () => {
     // Edit/Delete item helpers
     const resetBtn = document.getElementById('reset-form');
     const deleteBtn = document.getElementById('delete-item');
-    resetBtn.addEventListener('click', () => { form.reset(); document.getElementById('item-id').value=''; formStatus.textContent=''; });
-    deleteBtn.addEventListener('click', async () => {
+    resetBtn.addEventListener('click', () => { form.reset(); document.getElementById('item-id').value = ''; formStatus.textContent = ''; showValidation(''); });
+
+    const deleteModal = document.getElementById('admin-delete-modal');
+    const deleteCancelBtn = document.getElementById('admin-delete-cancel');
+    const deleteConfirmBtn = document.getElementById('admin-delete-confirm');
+    deleteBtn.addEventListener('click', () => {
         const idField = document.getElementById('item-id').value.trim();
-        if (!idField) { formStatus.textContent = 'No item selected to delete'; return; }
-        if (!confirm('Delete this item?')) return;
-        formStatus.textContent = 'Deleting...';
-        try {
-            const res = await fetch(`${apiBase}/api/admin/inventory/${idField}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${adminToken}` } });
-            if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error || 'Failed to delete'); }
-            form.reset(); document.getElementById('item-id').value='';
-            formStatus.textContent = 'Deleted';
-            await reload();
-        } catch (err) {
-            formStatus.textContent = `Error: ${err.message}`;
+        if (!idField) { formStatus.textContent = 'Select an item to delete first'; return; }
+        if (deleteModal) {
+            deleteModal.classList.add('is-open');
+            deleteModal.setAttribute('aria-hidden', 'false');
+            deleteConfirmBtn.dataset.deleteId = idField;
         }
     });
+    function closeDeleteModal() {
+        if (deleteModal) {
+            deleteModal.classList.remove('is-open');
+            deleteModal.setAttribute('aria-hidden', 'true');
+            if (deleteConfirmBtn) deleteConfirmBtn.dataset.deleteId = '';
+        }
+    }
+    if (deleteCancelBtn) deleteCancelBtn.addEventListener('click', closeDeleteModal);
+    if (deleteModal && deleteModal.querySelector('.admin-modal-backdrop')) {
+        deleteModal.querySelector('.admin-modal-backdrop').addEventListener('click', closeDeleteModal);
+    }
+    if (deleteConfirmBtn) {
+        deleteConfirmBtn.addEventListener('click', async () => {
+            const idField = deleteConfirmBtn.dataset.deleteId;
+            if (!idField) return;
+            closeDeleteModal();
+            formStatus.textContent = 'Deleting...';
+            try {
+                const res = await fetch(`${apiBase}/api/admin/inventory/${idField}`, { method: 'DELETE', headers: authHeaders(), credentials: 'include' });
+                if (!res.ok) { const err = await res.json().catch(() => ({})); throw new Error(err.error || 'Failed to delete'); }
+                form.reset(); document.getElementById('item-id').value = '';
+                formStatus.textContent = 'Deleted';
+                await reload();
+            } catch (err) {
+                formStatus.textContent = 'Error: ' + err.message;
+            }
+        });
+    }
 
     // Populate form when selecting item in dropdown
     itemSelect.addEventListener('change', async () => {
         const id = itemSelect.value;
         if (!id) return;
-        const res = await fetch(`${apiBase}/api/inventory/${id}`);
-        const item = await res.json();
+        setFormLoading(true);
+        showValidation('');
+        try {
+            const res = await fetch(`${apiBase}/api/inventory/${id}`, { credentials: 'include' });
+            const item = await res.json();
         document.getElementById('item-id').value = item.id;
         document.getElementById('category').value = item.category || '';
         document.getElementById('subcategory').value = item.subcategory || '';
@@ -162,6 +263,9 @@ document.addEventListener('DOMContentLoaded', () => {
         document.getElementById('year').value = item.year || '';
         document.getElementById('condition').value = item.condition || 'GOOD';
         renderGallery(item);
+        } finally {
+            setFormLoading(false);
+        }
     });
 
     // Image gallery with drag-and-drop
@@ -210,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const itemId = itemSelect.value;
                 const imageId = btn.getAttribute('data-del');
                 if (!confirm('Delete this image?')) return;
-                await fetch(`${apiBase}/api/admin/inventory/${itemId}/images/${imageId}`, { method: 'DELETE', headers: { 'Authorization': `Bearer ${adminToken}` } });
+                await fetch(`${apiBase}/api/admin/inventory/${itemId}/images/${imageId}`, { method: 'DELETE', headers: authHeaders(), credentials: 'include' });
                 await reload();
             });
         });
@@ -221,8 +325,9 @@ document.addEventListener('DOMContentLoaded', () => {
         const ids = Array.from(gallery.children).map(c => c.dataset.id);
         await fetch(`${apiBase}/api/admin/inventory/${itemId}/images/reorder`, {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${adminToken}` },
-            body: JSON.stringify({ order: ids })
+            headers: authHeaders(),
+            body: JSON.stringify({ order: ids }),
+            credentials: 'include'
         });
     }
 
