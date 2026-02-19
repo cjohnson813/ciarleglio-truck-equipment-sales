@@ -78,6 +78,8 @@ npx prisma migrate deploy
 
 **Summary:** Use direct URL (port 5432) when running `prisma migrate deploy`; use pooled URL (port 6543) for `DATABASE_URL` in Render.
 
+**Render / "Tenant or user not found":** The schema uses `directUrl = env("DIRECT_URL")`. Prisma runs migrations over `DIRECT_URL`, not the pooled `DATABASE_URL`. In Render you must set **both**: `DATABASE_URL` = pooled (6543), `DIRECT_URL` = direct (e.g. `postgresql://postgres:[PWD]@db.[project-ref].supabase.co:5432/postgres` from Supabase Dashboard → Project Settings → Database → Connection string → **Direct connection**). If you only set `DATABASE_URL` to the pooler, `npx prisma migrate deploy` will fail with "Tenant or user not found".
+
 ---
 
 ## 4) Render deployment (backend)
@@ -92,7 +94,8 @@ npx prisma migrate deploy
 |-----|--------|--------|
 | `NODE_ENV` | `production` | Required for secure cookies and CORS |
 | `PORT` | `4000` | Or leave unset; Render sets PORT automatically |
-| `DATABASE_URL` | `postgresql://postgres.[ref]:[PWD]@...pooler.supabase.com:6543/postgres?pgbouncer=true` | Supabase **pooled** (transaction) URL |
+| `DATABASE_URL` | `postgresql://postgres.[ref]:[PWD]@...pooler.supabase.com:6543/postgres?pgbouncer=true` | Supabase **pooled** (transaction) URL for the app |
+| `DIRECT_URL` | `postgresql://postgres:[PWD]@db.[ref].supabase.co:5432/postgres` | Supabase **direct** URL (for `prisma migrate deploy`); required to avoid "Tenant or user not found" |
 | `SESSION_SECRET` | (see below) | Strong random string |
 | `ALLOWED_ORIGINS` | `https://your-site.netlify.app,https://www.yourdomain.com` | Your Netlify URL(s), comma-separated |
 | `ADMIN_TOKEN` | (optional) | If you use Bearer token for admin API |
