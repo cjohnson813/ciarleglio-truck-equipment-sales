@@ -45,13 +45,14 @@ export function verify(token: string): SessionPayload | null {
 }
 
 export function createSessionCookie(payload: Omit<SessionPayload, 'iat'>): { name: string; value: string; options: Record<string, unknown> } {
+  const isProduction = process.env.NODE_ENV === 'production';
   return {
     name: COOKIE_NAME,
     value: sign(payload),
     options: {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
+      secure: isProduction,
+      sameSite: isProduction ? 'none' as const : 'lax', // cross-site (Netlify→Render) needs None + Secure
       maxAge: MAX_AGE_SEC * 1000,
       path: '/'
     }
