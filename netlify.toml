@@ -1,0 +1,8 @@
+# Netlify config for ciarleglio-truck-equipment-sales (frontend only)
+# Backend runs on Render; set API_URL in Netlify env to your Render URL.
+
+[build]
+  command = "npm run build:netlify"
+  publish = "public_html"
+
+# No base directory: repo root is used. Build script writes public_html/js/config.js from API_URL.
